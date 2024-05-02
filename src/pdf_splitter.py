@@ -1,33 +1,34 @@
 import os
-import openai
-import langchain
-import tiktoken
-import chromadb
-
-
-from langchain.document_loaders import unstructured, pdf
+from langchain.document_loaders import pdf
 from langchain.text_splitter import TokenTextSplitter
-from langchain.memory import ConversationBufferMemory
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import chroma
-from langchain.llms import openai
-from langchain.chains import conversational_retrieval
 
 
+class PDFProcessor:
+    def __init__(self, pdf_path):
+        self.pdf_path = pdf_path
+        self.split_data = []
+        self.pdf_content =None
+        self.pdf_tokens = None
 
-def get_pdf_tokens(pdf_path):
-    # checking for pdf files
-    for file in os.listdir(pdf_path):
-        if file.endswwith(".pdf"):
-            pdf_path = os.path.join(pdf_path, file)
+    def load_pdf(self):
+        # checking for pdf files
+        pdf_files = [os.path.join(root, file) for root, dirs, files in os.walk(pdf_path) for file in files if file.endswith(".pdf")]
 
-    # loading pdf content with Langchain PyPDFLoader
-    load = pdf.PyPDFLoader(pdf_path)
-    pdf_content = load.load()
+        if not pdf_files:
+            raise ValueError("No PDF files found in the provided directory.")
 
-    # splitting pdf content into tokens
-    splitter = TokenTextSplitter(chunk_size=1000, chunk_overlap=0)
-    splitData = splitter.split_documents(pdf_content)
+        # loading pdf content with Langchain PyPDFLoader
+        for pdf_file in pdf_files:
+            try:
+                loader = pdf.PyPDFLoader(pdf_file)
+                self.pdf_content = loader.load()
+            except Exception as e:
+                print(f"Error processing file {pdf_file}: {e}")
 
-    return splitData
+    def split_pdf_tokens(self):
+        # splitting pdf content into tokens
+        splitter = TokenTextSplitter(chunk_size=1000, chunk_overlap=0)
+        self.split_data.extend(splitter.split_documents(self.pdf_content))
 
+
+        return self.split_data
