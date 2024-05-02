@@ -12,7 +12,7 @@ class PDFProcessor:
 
     def load_pdf(self):
         # checking for pdf files
-        pdf_files = [os.path.join(root, file) for root, dirs, files in os.walk(pdf_path) for file in files if file.endswith(".pdf")]
+        pdf_files = [os.path.join(root, file) for root, dirs, files in os.walk(self.pdf_path) for file in files if file.endswith(".pdf")]
 
         if not pdf_files:
             raise ValueError("No PDF files found in the provided directory.")
@@ -31,4 +31,7 @@ class PDFProcessor:
         self.split_data.extend(splitter.split_documents(self.pdf_content))
 
 
+    def run(self):
+        self.load_pdf()
+        self.split_pdf_tokens()
         return self.split_data
