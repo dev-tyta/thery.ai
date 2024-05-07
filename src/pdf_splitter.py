@@ -6,19 +6,23 @@ from langchain.text_splitter import TokenTextSplitter
 class PDFProcessor:
     def __init__(self, pdf_path):
         self.pdf_path = pdf_path
+        self.pdf_files = []
         self.split_data = []
         self.pdf_content =None
         self.pdf_tokens = None
 
     def load_pdf(self):
         # checking for pdf files
-        pdf_files = [os.path.join(root, file) for root, dirs, files in os.walk(self.pdf_path) for file in files if file.endswith(".pdf")]
+        for root, dirs, files in os.walk(self.pdf_path):
+            for file in files:
+                if file.endswith(".pdf"):
+                    self.pdf_files.append(os.path.join(root, file))
 
-        if not pdf_files:
+        if not self.pdf_files:
             raise ValueError("No PDF files found in the provided directory.")
 
         # loading pdf content with Langchain PyPDFLoader
-        for pdf_file in pdf_files:
+        for pdf_file in self.pdf_files:
             try:
                 loader = pdf.PyPDFLoader(pdf_file)
                 self.pdf_content = loader.load()
