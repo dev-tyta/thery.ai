@@ -1,5 +1,5 @@
 import os
-from langchain.document_loaders import pdf
+from langchain_community.document_loaders import pdf
 from langchain.text_splitter import TokenTextSplitter
 
 
