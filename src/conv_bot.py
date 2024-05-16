@@ -2,7 +2,9 @@ import os
 from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain
 from langchain.llms.openai import OpenAI
 from langchain.memory import ConversationBufferMemory 
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class ChatChain:
     def __init__(self, vectdb):
