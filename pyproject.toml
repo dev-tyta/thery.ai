@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "thetherapist"
+version = "0.1.0"
+description = "Using RAG technique to build an LLM model to serve as a therapist for mentally challenged people"
+authors = ["Testimony Adekoya <hardeykoryar7@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+openai = "^1.40.1"
+langchain-community = "^0.2.11"
+langchain = "^0.2.12"
+langchain-openai = "^0.1.20"
+langchain-core = "^0.2.29"
+chromadb = "^0.5.5"
+fastapi = "^0.112.0"
+gpt-researcher = "^0.8.4"
+md2pdf = "^1.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
