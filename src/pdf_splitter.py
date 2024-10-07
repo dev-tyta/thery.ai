@@ -1,41 +1,56 @@
 import os
-from langchain_community.document_loaders import pdf
-from langchain.text_splitter import TokenTextSplitter
+import PyPDF2
+import glob 
+import openai
+import chromadb
+from chromadb.config import Settings
+from langchain_community.document_loaders import PyPDFLoader, PyMuPDFLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from dotenv import load_dotenv
 
 
-class PDFProcessor:
-    def __init__(self, pdf_path):
-        self.pdf_path = pdf_path
-        self.pdf_files = []
-        self.split_data = []
-        self.pdf_content =None
-        self.pdf_tokens = None
+load_dotenv()
 
-    def load_pdf(self):
-        # checking for pdf files
-        for root, dirs, files in os.walk(self.pdf_path):
-            for file in files:
-                if file.endswith(".pdf"):
-                    self.pdf_files.append(os.path.join(root, file))
-
-        if not self.pdf_files:
-            raise ValueError("No PDF files found in the provided directory.")
-
-        # loading pdf content with Langchain PyPDFLoader
-        for pdf_file in self.pdf_files:
-            try:
-                loader = pdf.PyPDFLoader(pdf_file)
-                self.pdf_content = loader.load()
-            except Exception as e:
-                print(f"Error processing file {pdf_file}: {e}")
-
-    def split_pdf_tokens(self):
-        # splitting pdf content into tokens
-        splitter = TokenTextSplitter(chunk_size=1000, chunk_overlap=0)
-        self.split_data.extend(splitter.split_documents(self.pdf_content))
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 
-    def run(self):
-        self.load_pdf()
-        self.split_pdf_tokens()
-        return self.split_data
+class DataExtractor:
+    def __init__(self, pdf_directory):
+        self.pdf_directory = pdf_directory
+        self.pdf_text = []
+        self.split_docs = None
+
+    
+    def extract_text(self):
+        print(f'Extracting text from pdf files in {self.pdf_directory}')
+        pdf_files = glob.glob(f'{self.pdf_directory}/*.pdf')
+        print(pdf_files)
+        for pdf_file in pdf_files:
+            print(pdf_file)
+            loader = PyPDFLoader(pdf_file)
+            documents = loader.load()
+            self.pdf_text.append(documents)
+
+        return self.pdf_text
+
+
+    def clean_and_split_text(self, text):
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000,
+                                                       chunk_overlap=200,
+                                                       length_function=len,)
+        self.split_docs = text_splitter.split_documents(text)  
+        
+        return self.split_docs
+
+
+
+# testing class DataExtractor
+if __name__ == '__main__':
+    pdf_directory = './data/mental-health'
+    data_extractor = DataExtractor(pdf_directory)
+    pdf_text = data_extractor.extract_text()
+    print(pdf_text)
+    split_docs = data_extractor.clean_and_split_text(pdf_text)
+    print(split_docs)
+    print(len(split_docs))
+    print(type(split_docs))
