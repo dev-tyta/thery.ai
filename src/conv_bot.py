@@ -1,33 +1,36 @@
 import os
+from langchain_community.llms import Ollama
+from langchain_community.vectorstores import Chroma
 from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain
-from langchain.llms.openai import OpenAI
-from langchain.memory import ConversationBufferMemory 
+from langchain.embeddings import HuggingFaceBgeEmbeddings
 from dotenv import load_dotenv
 
+
 load_dotenv()
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
 
-class ChatChain:
-    def __init__(self, vectdb):
-        self.memory = ConversationBufferMemory(memory_key="chat_history",  return_messages=True)
-        self.openai_key = os.environ.get("OPENAI_API_KEY")
-        self.vectdb = vectdb
-        self.chat_history = []
 
-    def initializing_retrieval(self):
-        chat_retrieval = ConversationalRetrievalChain.from_llm(
-            OpenAI(openai_api_key=self.openai_key, temperature= 0.8,
-                   model_name="gpt-3.5-turbo"),
-            self.vectdb.as_retriever(),
-            memory = self.memory
-                   )
-        return chat_retrieval
+llm = Ollama(model="llama3")
+model_name = "sentence-transformers/all-MiniLM-L6-v2"
+model_kwargs = {"device": "cpu"}
+encode_kwargs = {"padding": "max_length",
+                 "max_length": 512,
+                 "truncation": True,
+                 "normalize_embeddings": True
+                }
 
-    def process_chat(self, user_input):
-        chat_retrieval = self.initializing_retrieval()
-        while user_input != "send":
-            user_input = user_input
-            if user_input != exit:
-                response = chat_retrieval({"question":user_input, "chat_history":self.chat_history})
-                return response
-            
+embeddings = HuggingFaceBgeEmbeddings(
+            model_name=model_name,
+            model_kwargs=model_kwargs,
+            encode_kwargs=encode_kwargs
+)
 
+vectorstore = Chroma(persist_directory="./vector_embedding/mental_health_vector_db", embedding_function=embeddings)
+
+retriever = vectorstore.as_retriever(search_type="similarity", top_k=5)
+query = "What is mental health?"
+
+response = retriever.invoke(query)
+
+print(response)
