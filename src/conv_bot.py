@@ -1,8 +1,8 @@
 import os
-from langchain_community.llms import Ollama
-from langchain_community.vectorstores import Chroma
+from langchain_community.llms.ollama import Ollama 
+from langchain_chroma import Chroma
 from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain
-from langchain.embeddings import HuggingFaceBgeEmbeddings
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from dotenv import load_dotenv
 
 
