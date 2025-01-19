@@ -1,5 +1,5 @@
 import os
-from src.pdf_splitter import DataExtractor
+from src.utils.pdf_splitter import DataExtractor
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain.vectorstores import chroma

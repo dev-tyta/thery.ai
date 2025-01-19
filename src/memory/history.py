@@ -1,5 +1,5 @@
 import json
-from src.redis_connection import RedisConnection
+from src.memory.redis_connection import RedisConnection
 
 
 class History:

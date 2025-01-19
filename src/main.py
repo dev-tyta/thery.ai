@@ -1,5 +1,5 @@
-import vector_db
-import pdf_splitter
+import src.utils.vector_db as vector_db
+import src.utils.pdf_splitter as pdf_splitter
 
 vector_db = vector_db.VectorDatabase("mental_health_db")
 pdf_process = pdf_splitter.PDFProcessor("../data/mental_health")
