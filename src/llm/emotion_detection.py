@@ -1,4 +1,5 @@
-from langchain_openai import ChatOpenAI  # Changed to ChatOpenAI
+# from langchain_openai import ChatOpenAI  # Changed to ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from typing import Dict, Any
@@ -16,9 +17,10 @@ class EmotionDetector:
             
         os.environ["OPENAI_API_KEY"] = api_key
         try:
-            self.llm = ChatOpenAI(
+            self.llm = ChatGoogleGenerativeAI(
                 temperature=0.3,
-                model_name="gpt-3.5-turbo",
+                api_key=api_key,
+                model = "gemini-1.5-flash",
                 max_tokens=150  # Add token limit for safety
             )
         except Exception as e:
@@ -85,7 +87,7 @@ class EmotionDetector:
 
 def main():
     # Example usage with proper error handling
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         print("Error: OPENAI_API_KEY environment variable not set")
         sys.exit(1)
