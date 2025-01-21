@@ -1,5 +1,6 @@
 import os
 from langchain_community.llms.ollama import Ollama 
+from langchain_google_genai.embeddings import GoogleGenerativeAIEmbeddings                       
 from langchain_chroma import Chroma
 from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
@@ -15,6 +16,7 @@ load_dotenv()
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
 os.environ["LANGCHAIN_PROJECT"] = "THETHERAPAIST Chatbot"
+
 
 class TheTherapistLLM:
     def __init__(self):
