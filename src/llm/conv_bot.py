@@ -60,3 +60,38 @@ class TheTherapistLLM:
 
 # test class
 llm = TheTherapistLLM()
+def get_response(self, query: str, chat_history: list = None) -> str:
+    """Get response from LLM using both vector DB and web search"""
+    if chat_history is None:
+        chat_history = []
+        
+    # Initialize tools
+    tavily_tool, vector_search = self.initialize_tools()
+    
+    # Search vector DB first
+    context = vector_search(self, query)
+    
+    # Perform web search
+    web_results = tavily_tool[0].invoke(query)
+    web_context = "\n".join([result["content"] for result in web_results])
+    
+    # Combine contexts
+    full_context = f"Vector DB context:\n{context}\n\nWeb search context:\n{web_context}"
+    
+    # Format prompt
+    prompt = f"""As a mental health assistant, use the following context to answer:
+    {full_context}
+    
+    User question: {query}
+    
+    Please provide a helpful, empathetic response based on the available information."""
+    
+    # Get LLM response
+    response = self.llm.invoke(prompt)
+    
+    return response
+
+# Example usage
+llm = TheTherapistLLM()
+response = llm.get_response("How can I manage anxiety?")
+print(response)
