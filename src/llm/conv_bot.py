@@ -76,9 +76,11 @@ class LLMConvo:
         
         return response
 
+    def save_to_history(self, ):
+
 
 
 # Example usage
-llm = TheTherapistLLM()
-response = llm.get_response("How can I manage anxiety?")
+model = ConvoResponse()
+response = model.get_response("How can I manage anxiety?")
 print(response)
