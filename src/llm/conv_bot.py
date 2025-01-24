@@ -1,7 +1,8 @@
-from src.llm.core import TheTherapistLLM
 from pydantic import BaseModel
 from typing import List, Optional, Type, Any, Dict
 
+from src.llm.core import TheTherapistLLM
+from src.memory.history import History
 
 class ConvoResponse(BaseModel):
     response: str
@@ -17,10 +18,11 @@ class LLMConvo:
 
     Attributes:
         llm (TheTherapistLLM): The LLM instance
-
+        history: Set Up for saving the conversation history.
     """
 
     llm: Optional[TheTherapistLLM] = None
+    history: Optional[History] = None
 
 
     def init(self, query: str, chat_history: list = None):
@@ -33,6 +35,7 @@ class LLMConvo:
         """
         self.llm = TheTherapistLLM()
         self.tavily_tool, self.vector_search = self.llm.initialize_tools()
+        self.history = History()
         self.query = query
         self.chat_history = chat_history
 
@@ -75,9 +78,10 @@ class LLMConvo:
         response = self.llm.send_query(prompt)
         
         return response
-
-    def save_to_history(self, ):
-
+    
+    def save_to_history(self, chat_id, prompt, response, emotion_label, other_info):
+        self.history.add_message(chat_id=chat_id, message_content= prompt, emotion_label=emotion_label, metadata=other_info)
+        
 
 
 # Example usage
