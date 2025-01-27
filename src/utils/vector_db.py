@@ -34,7 +34,7 @@ class VectorDatabase:
 
 
 def main():
-    pdf_directory = './data/mental-health'
+    pdf_directory = './data/mental_health'
     data_extractor = DataExtractor(pdf_directory)
     text_data = data_extractor.extract_text()
     text_data = data_extractor.clean_and_split_text(text_data)

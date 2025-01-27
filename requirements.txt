@@ -18,3 +18,4 @@ pandas
 langserve
 langsmith
 telegram
+pydantic
