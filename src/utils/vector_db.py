@@ -1,37 +1,33 @@
 import os
 from src.utils.pdf_splitter import DataExtractor
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain_community.embeddings import HuggingFaceBgeEmbeddings
-from langchain.vectorstores import chroma
-
+from langchain_community.embeddings import HuggingFaceEmbeddings  # Changed
+from langchain_community.vectorstores import FAISS # Fixed import
 
 class VectorDatabase:
     def __init__(self, db_name):
-        self.db_name = "mental_health.db"
-        self.persist_directory = os.path.join("../vector_embedding", db_name)  # creating vector database      
-        self.model_name = "sentence-transformers/all-MiniLM-L6-v2"
-        self.model_kwargs = {"device": "cpu"}
-        self.encode_kwargs = {"padding": "max_length",
-                              "max_length": 512,
-                              "truncation": True,
-                              "normalize_embeddings": True
-                              }
-        self.embeddings = HuggingFaceBgeEmbeddings(
-            model_name=self.model_name,
-            model_kwargs=self.model_kwargs,
-            encode_kwargs=self.encode_kwargs
-)
+        self.db_name = db_name  # Use parameter
+        self.persist_directory = os.path.join("vector_embedding", self.db_name)  # Fixed path
+        
+        # Correct embeddings for sentence-transformers model
+        self.embeddings = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2",
+            model_kwargs={"device": "cpu"},
+            encode_kwargs={
+                "padding": "max_length",
+                "max_length": 512,
+                "truncation": True,
+                "normalize_embeddings": True
+            }
+        )
 
-    # creating vector database for Mental Health Knowledge base
-    def create_db(self, pdf_data):       
-        self.vectDB = chroma.Chroma.from_documents(
-                                                    pdf_data,
-                                                    embedding=self.embeddings,
-                                                    persist_directory=self.persist_directory
-                                                    )
-        self.vectDB.add_documents(pdf_data)
-        self.vectDB.persist()
-
+    def create_db(self, pdf_data):
+        # Create and persist database in one step
+        self.vectDB = FAISS.from_documents(
+            documents=pdf_data,
+            embedding=self.embeddings
+        )
+        self.vectDB.save_local(self.persist_directory)
+        # No need for add_documents() or explicit persist() when using from_documents
 
 def main():
     pdf_directory = './data/mental_health'

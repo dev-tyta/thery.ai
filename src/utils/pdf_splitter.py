@@ -1,8 +1,6 @@
-import glob 
-from chromadb.config import Settings
-from langchain_community.document_loaders import PyPDFLoader, PyMuPDFLoader
+import glob
+from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from dotenv import load_dotenv
 
 
 class DataExtractor:
