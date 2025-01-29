@@ -1,90 +1,150 @@
-from pydantic import BaseModel
-from typing import List, Optional, Type, Any, Dict
-
+import os
+from pydantic import BaseModel, Field, ValidationError
+from typing import Optional, List, Annotated, Dict, Tuple
+from logging import getLogger
+from pathlib import Path
 from src.llm.core import TheTherapistLLM
 from src.memory.history import History
+from langchain_core.tools import tool
+from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper
+from src.llm.core import FAISSVectorSearch
+from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 
-class ConvoResponse(BaseModel):
-    response: str
-    context: str
-    web_context: str
-    vector_db_context: str
-    query: str
-
-
-class LLMConvo:
-    """
-    Conversational Interface for TheTherapist LLM
-
-    Attributes:
-        llm (TheTherapistLLM): The LLM instance
-        history: Set Up for saving the conversation history.
-    """
-
-    llm: Optional[TheTherapistLLM] = None
-    history: Optional[History] = None
+logger = getLogger(__name__)
 
 
-    def init(self, query: str, chat_history: list = None):
-        """
-        Initialize the LLM with the given configuration.
-
-        Args:
-            query: The input query
-            chat_history: List of previous chat messages
-        """
-        self.llm = TheTherapistLLM()
-        self.tavily_tool, self.vector_search = self.llm.initialize_tools()
-        self.history = History()
-        self.query = query
-        self.chat_history = chat_history
+class ConversationResponse(BaseModel):
+    """Structured response container with full context"""
+    response: str = Field(..., description="Primary assistant response")
+    context: str = Field(..., description="Combined context sources")
+    web_context: str = Field(..., description="Web search results")
+    vector_db_context: str = Field(..., description="Vector DB matches")
+    query: str = Field(..., description="Original user query")
 
 
-    def web_search(self, query: str) -> str:
-        """Perform web search using Tavily"""
-        web_results = self.tavily_tool[0].invoke(query)
-        web_context = "\n".join([result["content"] for result in web_results])
-        return web_context
+class LLMConversation:
+    """Main conversation orchestrator with state management"""
     
+    def __init__(
+        self,
+        llm: Optional['TheTherapistLLM'] = None,
+        history: Optional['History'] = None,
+        vector_db_path: Path = Path("vector_embedding/mental_health_vector_db")
+    ):
+        self.llm = llm or TheTherapistLLM()
+        self.history = history or History()
+        self.vector_db_path = vector_db_path
+        self._initialize_tools()
 
-    def db_retriever(self, query):
-        """Retrieve context from vector DB"""
-        context = self.vector_search(self, query)
-        return context
+    def _initialize_tools(self) -> None:
+        """Lazy-load expensive resources"""
+        self.tavily_tool = TavilySearchResults(
+            max_results=3,
+            include_answer=True,
+            include_images=False,  # Disabled until needed
+            api_wrapper=TavilySearchAPIWrapper(tavily_api_key=os.getenv("TAVILY_API_KEY"))
+        )
+        
+        self.vector_search = FAISSVectorSearch(
+            embedding_model=HuggingFaceEmbeddings(
+                model_name="sentence-transformers/all-MiniLM-L6-v2",
+                model_kwargs={"device": "cpu"},
+                encode_kwargs={
+                    "padding": "max_length",
+                    "max_length": 512,
+                    "truncation": True,
+                    "normalize_embeddings": True
+                }
+            ),
+            db_path=self.vector_db_path
+        )
+
+    def process_query(
+        self,
+        query: str,
+        chat_history: Optional[List[Dict]] = None
+    ) -> ConversationResponse:
+        """Main entry point for conversation processing"""
+        try:
+            web_context = self._web_search(query)
+            vector_context = self._vector_search(query)
+            
+            return self._build_response(
+                query=query,
+                web_context=web_context,
+                vector_context=vector_context
+            )
+        except Exception as e:
+            logger.error(f"Query processing failed: {str(e)}")
+            return self._fallback_response(query)
+
+    def _web_search(self, query: str) -> str:
+        """Web search with error isolation"""
+        try:
+            results = self.tavily_tool.invoke(query)
+            return "\n".join([res["content"] for res in results])
+        except Exception as e:
+            logger.warning(f"Web search failed: {str(e)}")
+            return "No web results available"
+
+    def _vector_search(self, query: str) -> str:
+        """Vector DB search with error isolation"""
+        try:
+            return self.vector_search(query)
+        except Exception as e:
+            logger.warning(f"Vector search failed: {str(e)}")
+            return "No vector matches found"
+
+    def _build_response(
+        self,
+        query: str,
+        web_context: str,
+        vector_context: str
+    ) -> ConversationResponse:
+        """Construct validated response object"""
+        combined_context = (
+            f"Vector DB Context:\n{vector_context}\n\nWeb Context:\n{web_context}"
+        )
+        
+        prompt = self._construct_prompt(query, combined_context)
+        llm_response = self.llm.generate(prompt)
+        
+        return ConversationResponse(
+            response=llm_response,
+            context=combined_context,
+            web_context=web_context,
+            vector_db_context=vector_context,
+            query=query
+        )
+
+    @staticmethod
+    def _construct_prompt(query: str, context: str) -> str:
+        """Structured prompt engineering"""
+        return f"""As a mental health professional, analyze this context:
+        {context}
+        
+        User Query: {query}
+        
+        Provide:
+        1. Empathetic acknowledgement
+        2. Evidence-based suggestions
+        3. Crisis resources if needed
+        4. Non-judgemental tone"""
+
+    def _fallback_response(self, query: str) -> ConversationResponse:
+        """Graceful degradation response"""
+        return ConversationResponse(
+            response="I'm having trouble accessing my resources. Please try again later.",
+            context="",
+            web_context="",
+            vector_db_context="",
+            query=query
+        )
 
 
-    def get_response(self, query: str, chat_history: list = None) -> str:
-        """Get response from LLM using both vector DB and web search"""
-        if chat_history is None:
-            chat_history = []
-        
-        # retriever and web search context
-        retriever_context = self.db_retriever(query)
-        web_context = self.web_search(query)
-
-        
-        # Combine contexts
-        full_context = f"Vector DB context:\n{retriever_context}\n\nWeb search context:\n{web_context}"
-        
-        # Format prompt
-        prompt = f"""As a mental health assistant, use the following context to answer:
-        {full_context}
-        
-        User question: {query}
-        
-        Please provide a helpful, empathetic response based on the available information."""
-        
-        # Get LLM response
-        response = self.llm.send_query(prompt)
-        
-        return response
-    
-    def save_to_history(self, chat_id, prompt, response, emotion_label, other_info):
-        self.history.add_message(chat_id=chat_id, message_content= prompt, emotion_label=emotion_label, metadata=other_info)
-        
-
-
-# Example usage
-model = ConvoResponse()
-response = model.get_response("How can I manage anxiety?")
-print(response)
+# Usage Example
+if __name__ == "__main__":
+    conversation = LLMConversation()
+    response = conversation.process_query("I feel really sad today")
+    print(response)

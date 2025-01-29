@@ -5,6 +5,8 @@ langchain-text-splitters
 langchain-openai
 langchain-anthropic
 langchain-google-community
+langchain_chroma
+langchain_huggingface
 fastapi
 gpt-researcher
 chromadb
@@ -21,3 +23,4 @@ langsmith
 telegram
 pydantic
 spotipy
+tavily-python

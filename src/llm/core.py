@@ -1,65 +1,68 @@
-import os
-from langchain_community.llms.ollama import Ollama
-from langchain_chroma import Chroma
-from langchain_community.embeddings import HuggingFaceBgeEmbeddings
-
-
+# llm_core.py
 from langchain_core.tools import tool
-from langchain_community.tools.tavily_search import TavilySearchResults
-from dotenv import load_dotenv
+from langchain_community.llms.ollama import Ollama
+from langchain_ollama import OllamaLLM
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
+from langchain_community.vectorstores import FAISS
+from pathlib import Path
+from typing import Annotated
+import os
 
-from typing import Annotated, Sequence, Literal, List
-from typing_extensions import TypedDict
+class FAISSVectorSearch:
+    """Encapsulated vector search operations"""
+    
+    def __init__(
+        self,
+        embedding_model: HuggingFaceBgeEmbeddings,
+        db_path: Path,
+        k: int = 5
+    ):
+        self.vectorstore = FAISS.load_local(
+            str(db_path),
+            embedding_model,
+            allow_dangerous_deserialization=True
+        )
+        self.k = k
 
-
-load_dotenv()
-os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
-os.environ["LANGCHAIN_PROJECT"] = "THETHERAPAIST Chatbot"
-
+    def __call__(self, query: str) -> str:
+        """Search interface"""
+        results = self.vectorstore.similarity_search(query, k=self.k)
+        return "\n".join([res.page_content for res in results])
 
 class TheTherapistLLM:
-    def __init__(self):
-        self.llm = Ollama(model="llama3")
-        self.model_name = "sentence-transformers/all-MiniLM-L6-v2"
-        self.model_kwargs = {"device": "cpu"}
-        self.encode_kwargs = {"padding": "max_length",
-                        "max_length": 512,
-                        "truncation": True,
-                        "normalize_embeddings": True
-                        }
+    """LLM wrapper with proper resource management"""
+    
+    def __init__(
+        self,
+        model_name: str = "llama3.1",
+        temperature: float = 0.7,
+        max_retries: int = 3
+    ):
+        self.llm = OllamaLLM(
+            model=model_name,
+            temperature=temperature,
+            max_retries=max_retries
+        )
+        self._session_active = False
 
-    def initialize_tools(self):
-        tavily_tool = [
-            TavilySearchResults(
-                max_results=3, 
-                name="tavily_search",
-                include_answer=True,
-                include_images=True,
-                include_depth="advanced"
-                )
-        ]
-        
-        @tool()
-        def vector_db_search(
-            self,
-            query: Annotated[str, "The query to search in the vector database."]
-        ): 
-            embeddings = HuggingFaceBgeEmbeddings(
-                    model_name=self.model_name,
-                    model_kwargs=self.model_kwargs,
-                    encode_kwargs=self.encode_kwargs
-                    )
-            vectorstore = Chroma(persist_directory="./vector_embedding/mental_health_vector_db", embedding_function=embeddings)
+    def generate(self, prompt: str) -> str:
+        """Safely generate responses"""
+        if not self._session_active:
+            self._start_session()
+            
+        try:
+            return self.llm.invoke(prompt)
+        except Exception as e:
+            raise LLMError(f"Generation failed: {str(e)}")
 
-            results = vectorstore.similarity_search(query, k=5)
-            return "\n".join([res.page_content for res in results])
-        
-        return tavily_tool, vector_db_search
+    def _start_session(self) -> None:
+        """Resource-intensive initialization"""
+        try:
+            # Add any session setup logic here  
+            self._session_active = True
+        except Exception as e:
+            raise LLMError(f"Session initialization failed: {str(e)}")
 
-
-    def send_query(self, query: str):
-        # Invoking Prompt with the LLM model
-        response = self.llm.invoke(query)
-
-        return response
+class LLMError(Exception):
+    """Custom exception for LLM operations"""
+    pass
