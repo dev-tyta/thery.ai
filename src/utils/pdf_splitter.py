@@ -2,7 +2,6 @@ import glob
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-
 class DataExtractor:
     def __init__(self, pdf_directory):
         self.pdf_directory = pdf_directory

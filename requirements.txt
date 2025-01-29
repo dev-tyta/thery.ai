@@ -1,6 +1,7 @@
 langchain
 langchain-core
 langchain-community
+langchain-text-splitters
 langchain-openai
 langchain-anthropic
 langchain-google-community
