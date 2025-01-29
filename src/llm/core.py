@@ -1,7 +1,6 @@
 # llm_core.py
 from langchain_core.tools import tool
-from langchain_community.llms.ollama import Ollama
-from langchain_ollama import OllamaLLM
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain_community.vectorstores import FAISS
 from pathlib import Path
@@ -34,14 +33,16 @@ class TheTherapistLLM:
     
     def __init__(
         self,
-        model_name: str = "llama3.1",
+        model_name: str = "gemini-1.5-flash",
         temperature: float = 0.7,
         max_retries: int = 3
+        api_key: str= os.getenv("GEMINI_API_KEY")
     ):
-        self.llm = OllamaLLM(
+        self.llm = ChatGoogleGenerativeAI(
             model=model_name,
             temperature=temperature,
             max_retries=max_retries
+            api_key = api_key
         )
         self._session_active = False
 
