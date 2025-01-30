@@ -11,6 +11,9 @@ from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper
 from src.llm.core import FAISSVectorSearch
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 
+# For TensorFlow-related warnings (if any)
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+
 logger = getLogger(__name__)
 
 
@@ -69,7 +72,7 @@ class LLMConversation:
         try:
             web_context = self._web_search(query)
             vector_context = self._vector_search(query)
-            
+
             return self._build_response(
                 query=query,
                 web_context=web_context,
@@ -109,6 +112,7 @@ class LLMConversation:
         
         prompt = self._construct_prompt(query, combined_context)
         llm_response = self.llm.generate(prompt)
+        llm_response = llm_response.content.strip()
         
         return ConversationResponse(
             response=llm_response,
@@ -126,11 +130,17 @@ class LLMConversation:
         
         User Query: {query}
         
-        Provide:
+        Analyze the user query with respect to the following elements:
         1. Empathetic acknowledgement
         2. Evidence-based suggestions
         3. Crisis resources if needed
-        4. Non-judgemental tone"""
+        4. Non-judgemental tone
+        
+        After a critical analysis, provide a response that is conversational, empathetic, supportive, and informative. 
+        
+        Make sure you read the emotional context and provide a response that is appropriate, not offensive and helpful.
+    
+        """
 
     def _fallback_response(self, query: str) -> ConversationResponse:
         """Graceful degradation response"""

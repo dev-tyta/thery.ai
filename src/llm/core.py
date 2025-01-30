@@ -1,5 +1,4 @@
-# llm_core.py
-from langchain_core.tools import tool
+from langchain_core.messages import AIMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -8,7 +7,10 @@ from typing import Annotated
 import os
 from dotenv import load_dotenv
 
+import logging
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 class FAISSVectorSearch:
     """Encapsulated vector search operations"""
@@ -40,10 +42,9 @@ class TheTherapistLLM:
         model_name: str = "gemini-1.5-flash",
         temperature: float = 0.7,
         max_retries: int = 3,
-        api_key: str= os.getenv("GEMINI_API_KEY")
+        api_key: str= os.getenv("GOOGLE_API_KEY")
     ):
-        print(api_key)
-        os.environ["GEMINI_API_KEY"] = api_key
+        os.environ["GOOGLE_API_KEY"] = api_key
         self.llm = ChatGoogleGenerativeAI(
             model=model_name,
             temperature=temperature,
@@ -57,7 +58,10 @@ class TheTherapistLLM:
             self._start_session()
             
         try:
-            return self.llm.invoke(prompt)
+            response = self.llm.invoke(prompt)
+            if isinstance(response, AIMessage):
+                return response
+            return response
         except Exception as e:
             raise LLMError(f"Generation failed: {str(e)}")
 

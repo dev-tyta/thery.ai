@@ -2,31 +2,29 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import os
 import sys
-import faulthandler
-faulthandler.enable()
+from src.llm.core import TheTherapistLLM
+from src.memory.history import History
+from dotenv import load_dotenv
+
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+load_dotenv()
 
 
 class EmotionDetector:
-    def __init__(self, api_key: str):
+    def __init__(self, 
+                llm: Optional['TheTherapistLLM'] = None,
+                history: Optional['History'] = None,
+
+                ):
         """Initialize the emotion detector with OpenAI API key."""
-        if not api_key:
-            raise ValueError("API key cannot be empty")
-            
-        os.environ["GEMINI_API_KEY"] = api_key
-        try:
-            self.llm = ChatGoogleGenerativeAI(
-                temperature=0.3,
-                api_key=api_key,
-                model = "gemini-1.5-flash",
-                max_tokens=150  # Add token limit for safety
-            )
-        except Exception as e:
-            print(f"Error initializing ChatOpenAI: {str(e)}")
-            sys.exit(1)
-        
+        self.llm = llm or TheTherapistLLM()
+        self.history = history or History()
+
         # Create a prompt template for emotion detection
         self.prompt = PromptTemplate(
             input_variables=["text"],
@@ -39,8 +37,7 @@ class EmotionDetector:
         
         # Create the chain with error handling
         try:
-            self.chain = self.prompt | self.llm # LLMChain(llm=self.llm, prompt=self.prompt)
-            print("LLMChain created successfully")
+            self.chain = self.llm.generate(self.prompt) # LLMChain(llm=self.llm, prompt=self.prompt)
         except Exception as e:
             print(f"Error creating LLMChain: {str(e)}")
             sys.exit(1)
@@ -77,23 +74,18 @@ class EmotionDetector:
         print(f"Detailed analysis chain created: {detailed_prompt}")
         
         try:
-            chain = detailed_prompt | self.llm  # LLMChain(llm=self.llm, prompt=detailed_prompt)
+            self.chain = detailed_prompt | self.llm  # LLMChain(llm=self.llm, prompt=detailed_prompt)
             print("Chain created")
-            response = chain.invoke(text)
+            response = self.chain.invoke(text)
             print(f"Response received: {response}")
             return {"analysis": response.strip()}
         except Exception as e:
             return {"analysis": f"Error in detailed analysis: {str(e)}"}
 
 def main():
-    # Example usage with proper error handling
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        print("Error: OPENAI_API_KEY environment variable not set")
-        sys.exit(1)
-        
+    # Example usage with proper error handling        
     try:
-        detector = EmotionDetector(api_key)
+        detector = EmotionDetector()
         print("Model Loaded Successfully")
         
         sample_text = "I'm really excited about this new project!"
