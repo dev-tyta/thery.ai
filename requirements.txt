@@ -7,6 +7,7 @@ langchain-anthropic
 langchain-google-community
 langchain_chroma
 langchain_huggingface
+langchain_google_genai
 fastapi
 gpt-researcher
 chromadb

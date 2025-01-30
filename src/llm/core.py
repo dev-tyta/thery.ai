@@ -6,6 +6,9 @@ from langchain_community.vectorstores import FAISS
 from pathlib import Path
 from typing import Annotated
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class FAISSVectorSearch:
     """Encapsulated vector search operations"""
@@ -28,6 +31,7 @@ class FAISSVectorSearch:
         results = self.vectorstore.similarity_search(query, k=self.k)
         return "\n".join([res.page_content for res in results])
 
+
 class TheTherapistLLM:
     """LLM wrapper with proper resource management"""
     
@@ -35,14 +39,15 @@ class TheTherapistLLM:
         self,
         model_name: str = "gemini-1.5-flash",
         temperature: float = 0.7,
-        max_retries: int = 3
+        max_retries: int = 3,
         api_key: str= os.getenv("GEMINI_API_KEY")
     ):
+        print(api_key)
+        os.environ["GEMINI_API_KEY"] = api_key
         self.llm = ChatGoogleGenerativeAI(
             model=model_name,
             temperature=temperature,
-            max_retries=max_retries
-            api_key = api_key
+            max_retries=max_retries,
         )
         self._session_active = False
 

@@ -15,7 +15,7 @@ class EmotionDetector:
         if not api_key:
             raise ValueError("API key cannot be empty")
             
-        os.environ["OPENAI_API_KEY"] = api_key
+        os.environ["GEMINI_API_KEY"] = api_key
         try:
             self.llm = ChatGoogleGenerativeAI(
                 temperature=0.3,
