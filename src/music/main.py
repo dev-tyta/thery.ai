@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from spotipy import Spotify
-from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import SpotifyClientCredentials
 from typing import Dict, List, Optional
 import os
 import logging
@@ -55,11 +55,11 @@ class SpotifyClient:
     """Handles Spotify authentication and basic API operations"""
     
     def __init__(self):
-        self.client = Spotify(auth_manager=SpotifyOAuth(
+        self.client_credentials_manager = SpotifyClientCredentials(
             client_id=os.getenv("SPOTIFY_CLIENT_ID"),
-            client_secret=os.getenv("SPOTIFY_CLIENT_SECRET"),
-            scope="user-top-read playlist-modify-private user-read-private"
-        ))
+            client_secret=os.getenv("SPOTIFY_CLIENT_SECRET")
+        )
+        self.client = Spotify(client_credentials_manager=self.client_credentials_manager)
     
     def get_recommendations(self, params: RecommendationParameters) -> List[Dict]:
         """Base recommendation API call"""
@@ -100,6 +100,7 @@ class EmotionAudioProfile:
         profile = self.base_profiles.get(emotion, {}).copy()
         profile.update(self.cultural_adjustments.get(country, {}).get(emotion, {}))
         return profile
+
 
 class GenreMapper:
     """Hierarchical genre mapping system with fallbacks"""
