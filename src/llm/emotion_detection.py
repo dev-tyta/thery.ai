@@ -25,33 +25,28 @@ class EmotionDetector:
         self.llm = llm or TheTherapistLLM()
         self.history = history or History()
 
+    @staticmethod
+    def _construct_prompt(text: str) -> str:
         # Create a prompt template for emotion detection
-        self.prompt = PromptTemplate(
-            input_variables=["text"],
-            template="""
+        prompt = f"""
             Analyze the emotional content in the following text and return the primary emotion:
             Text: {text}
             Primary emotion:"""
-        )
-        print(f"Prompt created: {self.prompt}")
-        
-        # Create the chain with error handling
-        try:
-            self.chain = self.llm.generate(self.prompt) # LLMChain(llm=self.llm, prompt=self.prompt)
-        except Exception as e:
-            print(f"Error creating LLMChain: {str(e)}")
-            sys.exit(1)
+        print(f"Prompt created: {prompt}")
+
+        return prompt
     
     def detect_emotion(self, text: str) -> str:
         """Detect the primary emotion in the given text."""
         if not text:
             return "Error: Empty text provided"
-            
+        prompt = self._construct_prompt(text)
         try:
             print("Invoking emotion detection chain")
-            response = self.chain.invoke(text)
+            
+            response = self.llm.generate(prompt)
             print(f"Response received: {response}")
-            return response.strip()
+            return response.content.strip()
         except Exception as e:
             return f"Error detecting emotion: {str(e)}"
 
@@ -59,10 +54,8 @@ class EmotionDetector:
         """Get a more detailed emotional analysis of the text."""
         if not text:
             return {"analysis": "Error: Empty text provided"}
-        print("Creating detailed analysis chain")
-        detailed_prompt = PromptTemplate(
-            input_variables=["text"],
-            template="""
+        
+        detailed_prompt =f"""
             Provide a detailed emotional analysis of the following text:
             Text: {text}
             Please analyze:
@@ -70,15 +63,12 @@ class EmotionDetector:
             2. Intensity (1-10)
             3. Secondary emotions
             Analysis:"""
-        )
         print(f"Detailed analysis chain created: {detailed_prompt}")
         
         try:
-            self.chain = detailed_prompt | self.llm  # LLMChain(llm=self.llm, prompt=detailed_prompt)
-            print("Chain created")
-            response = self.chain.invoke(text)
+            response = self.llm.generate(prompt=detailed_prompt)
             print(f"Response received: {response}")
-            return {"analysis": response.strip()}
+            return {"analysis": response.content.strip()}
         except Exception as e:
             return {"analysis": f"Error in detailed analysis: {str(e)}"}
 
@@ -90,10 +80,10 @@ def main():
         
         sample_text = "I'm really excited about this new project!"
         print(f"Sample text: {sample_text}")
-        emotion = detector.detect_emotion(sample_text)
+        emotion = detector.detect_emotion(text=sample_text)
         print(f"Detected emotion: {emotion}")
         
-        detailed = detector.get_detailed_analysis(sample_text)
+        detailed = detector.get_detailed_analysis(text=sample_text)
         print(f"Detailed analysis: {detailed}")
         
     except Exception as e:
