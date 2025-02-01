@@ -1,9 +1,10 @@
 import uuid
+import textwrap
 from typing import Dict, Any, Optional, List
 from .base_agent import BaseAgent
 from .emotion_agent import EmotionAgent
 from .context_agent import ContextAgent
-from src.llm.models.schemas import ConversationResponse
+from src.llm.models.schemas import ConversationResponse, EmotionalAnalysis, ContextInfo
 from src.llm.models.schemas import SessionData
 from src.llm.memory.memory_manager import RedisMemoryManager
 from src.llm.memory.session_manager import SessionManager
@@ -59,6 +60,8 @@ class ConversationAgent(BaseAgent):
 
         self.memory_manager.store_conversation(session_id, chat_id, response)
         self.history.add_conversation(session_id, chat_id, response)
+
+        self._log_action(action="conversation", metadata={"query": query, "response": response}, level="INFO", session_id=session_id, user_id=user_id)
         
         return ConversationResponse(
             session_data=SessionData(
@@ -76,8 +79,8 @@ class ConversationAgent(BaseAgent):
     def _generate_response(
         self,
         query: str,
-        emotion_analysis: Dict[str, Any],
-        context: Dict[str, str],
+        emotion_analysis: Optional[EmotionalAnalysis],
+        context: Optional[ContextInfo],
         chat_history: Optional[List[Dict]]
     ) -> str:
         prompt = self._construct_response_prompt(
@@ -92,7 +95,7 @@ class ConversationAgent(BaseAgent):
     
     def _construct_response_prompt(self, **kwargs) -> str:
         # Implement sophisticated prompt construction
-        return f"""
+        prompt = f"""
                 You are Thery AI, a compassionate virtual therapist who provides supportive, evidence-based advice and empathetic conversation. When generating your response, follow these steps internally:
 
                 1. **Acknowledge the Emotional State:**  
@@ -129,3 +132,5 @@ class ConversationAgent(BaseAgent):
 
                 Generate your final response by synthesizing these points into a natural, supportive message. Keep in mind that your internal chain-of-thought should guide you to consider the user's feelings, context, and the best evidence-based strategies before producing your answer.
         """
+
+        return textwrap.dedent(prompt).strip()

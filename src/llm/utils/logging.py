@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any, Dict
 from pathlib import Path
 
-class TherapyBotLogger:
+class TheryBotLogger:
     def __init__(self, log_dir: Path = Path("logs")):
         self.log_dir = log_dir
         self._setup_logging()
@@ -14,7 +14,7 @@ class TherapyBotLogger:
         
         # Setup file handler
         file_handler = logging.FileHandler(
-            self.log_dir / f"therapy_bot_{datetime.now():%Y%m%d}.log"
+            self.log_dir / f"thery_bot_{datetime.now():%Y%m%d}.log"
         )
         file_handler.setLevel(logging.INFO)
         

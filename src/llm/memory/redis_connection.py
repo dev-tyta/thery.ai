@@ -1,6 +1,7 @@
 import redis
+import logging
 from src.llm.core.config import settings
-from src.llm.utils.logging import TherapyBotLogger
+from src.llm.utils.logging import TheryBotLogger
 
 class RedisConnection:
     _instance = None
@@ -8,11 +9,11 @@ class RedisConnection:
     def __new__(cls):
         if not cls._instance:
             cls._instance = super().__new__(cls)
-            cls._instance._initialize_connection()
+            cls._instance._initialize_self()
         return cls._instance
     
     def _initialize_self(self) -> None:
-        self.logger = TherapyBotLogger()
+        self.logger = TheryBotLogger()
         self.redis = redis.Redis(
             host=settings.REDIS_HOST,
             port=settings.REDIS_PORT,
@@ -24,14 +25,14 @@ class RedisConnection:
             self.redis.ping()
         except redis.ConnectionError as e:
             self.logger.log_interaction(
-                "redis_connection_failed",
-                {"error": str(e)},
-                level="ERROR"
+                interaction_type="redis_connection_failed",
+                data={"error": str(e)},
+                level=logging.ERROR
             )
             raise RuntimeError(f"Redis connection failed: {str(e)}")
 
     @property
     def client(self):
         if not self.redis.ping():
-            self._initialize_connection()
+            self._initialize_self()
         return self.redis

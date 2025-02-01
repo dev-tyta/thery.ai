@@ -8,8 +8,8 @@ class Settings(BaseSettings):
     GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY")
     TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY")
     REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 5432
-    REDIS_DB: str = "therapy_bot"
+    REDIS_PORT: int = 6379
+    REDIS_DB: int = 0
     REDIS_USER: str = "redis"
     REDIS_PASSWORD: str = ""
     SESSION_TTL: int = 86400

@@ -10,6 +10,7 @@ class EmotionalAnalysis(BaseModel):
     confidence_score: float = Field(..., ge=0, le=1)
 
 class ContextInfo(BaseModel):
+    query: str
     web_context: str
     vector_context: str
     combined_context: str

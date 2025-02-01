@@ -1,9 +1,9 @@
 from typing import Optional, Dict, Any
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import AIMessage
-import os
+import logging
 from src.llm.core.config import settings
-from src.llm.utils.logging import TherapyBotLogger
+from src.llm.utils.logging import TheryBotLogger
 
 class LLMError(Exception):
     """Custom exception for LLM-related errors"""
@@ -18,13 +18,13 @@ class TheryLLM:
         temperature: float = 0.7,
         max_retries: int = 3,
         safety_threshold: float = 0.95,
-        logger: Optional[TherapyBotLogger] = None
+        logger: Optional[TheryBotLogger] = None
     ):
         self.model_name = model_name
         self.temperature = temperature
         self.max_retries = max_retries
         self.safety_threshold = safety_threshold
-        self.logger = logger or TherapyBotLogger()
+        self.logger = logger or TheryBotLogger()
         self._initialize_llm()
     
     def _initialize_llm(self) -> None:
@@ -39,6 +39,11 @@ class TheryLLM:
             self._session_active = True
         except Exception as e:
             self._session_active = False
+            self.logger.log_interaction(
+                interaction_type="llm_initialization_failed",
+                data={"error": str(e)},
+                level=logging.ERROR
+            )
             raise LLMError(f"LLM initialization failed: {str(e)}")
     
     def generate(self, prompt: str, **kwargs) -> AIMessage:
@@ -49,8 +54,9 @@ class TheryLLM:
         try:
             # Log the generation attempt
             self.logger.log_interaction(
-                "llm_generation_attempt",
-                {"prompt": prompt, "kwargs": kwargs}
+                interaction_type="llm_generation_attempt",
+                data={"prompt": prompt, "kwargs": kwargs},
+                level=logging.INFO
             )
             
             # Generate response
@@ -61,17 +67,18 @@ class TheryLLM:
             
             # Log successful generation
             self.logger.log_interaction(
-                "llm_generation_success",
-                {"prompt": prompt, "response": str(validated_response)}
+                interaction_type="llm_generation_success",
+                data={"prompt": prompt, "response": str(validated_response)},
+                level=logging.INFO
             )
             
             return validated_response
             
         except Exception as e:
             self.logger.log_interaction(
-                "llm_generation_error",
-                {"prompt": prompt, "error": str(e)},
-                level="ERROR"
+                interaction_type="llm_generation_error",
+                data={"prompt": prompt, "error": str(e)},
+                level=logging.ERROR
             )
             raise LLMError(f"Generation failed: {str(e)}")
     
@@ -81,9 +88,19 @@ class TheryLLM:
     ) -> AIMessage:
         """Validate response content and format"""
         if not isinstance(response, AIMessage):
+            self.logger.log_interaction(
+                interaction_type="llm_invalid_response_type",
+                data={"response": response},
+                level=logging.ERROR
+            )
             raise LLMError("Invalid response type")
             
         if not response.content.strip():
+            self.logger.log_interaction(
+                interaction_type="llm_empty_response",
+                data={"response": response},
+                level=logging.ERROR
+            )
             raise LLMError("Empty response content")
             
         return response

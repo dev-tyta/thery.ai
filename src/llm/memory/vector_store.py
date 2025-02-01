@@ -1,22 +1,26 @@
 from pathlib import Path
 from typing import List, Optional
-from langchain_community.embeddings import HuggingFaceBgeEmbeddings
+import logging
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
+from src.llm.utils.logging import TheryBotLogger
 
 class FAISSVectorSearch:
     def __init__(
         self,
-        embedding_model: Optional[HuggingFaceBgeEmbeddings] = None,
+        embedding_model: Optional[HuggingFaceEmbeddings] = None,
         db_path: Path = Path("vector_embedding/mental_health_vector_db"),
-        k: int = 5
+        k: int = 5,
+        logger: Optional[TheryBotLogger] = None
     ):
         self.embedding_model = embedding_model or self._get_default_embedding_model()
         self.db_path = db_path
         self.k = k
+        self.logger = logger or TheryBotLogger()
         self._initialize_store()
     
-    def _get_default_embedding_model(self) -> HuggingFaceBgeEmbeddings:
-        return HuggingFaceBgeEmbeddings(
+    def _get_default_embedding_model(self) -> HuggingFaceEmbeddings:
+        return HuggingFaceEmbeddings(
             model_name="sentence-transformers/all-MiniLM-L6-v2",
             model_kwargs={"device": "cpu"},
             encode_kwargs={
@@ -49,6 +53,11 @@ class FAISSVectorSearch:
             return [res.page_content for res in results]
         except Exception as e:
             # Log error and return empty results
+            self.logger.log_interaction(
+                interaction_type="vector_search_error",
+                data={"error": str(e)},
+                level=logging.ERROR
+            )
             return []
     
     def add_texts(self, texts: List[str]) -> None:

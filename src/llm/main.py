@@ -1,11 +1,11 @@
 import logging
 from src.llm.agents.conversation_agent import ConversationAgent
-from src.llm.utils.logging import TherapyBotLogger
+from src.llm.utils.logging import TheryBotLogger
 from src.llm.core.config import settings
 
 def main():
     # Initialize logger
-    logger = TherapyBotLogger()
+    logger = TheryBotLogger()
     
     # Initialize main conversation agent
     agent = ConversationAgent()
@@ -19,12 +19,13 @@ def main():
         
         # Log interaction
         logger.log_interaction(
-            "user_interaction",
-            {
+            interaction_type="user_interaction",
+            data={
                 "query": query,
                 "response": response.dict(),
                 "status": "success"
-            }
+            },
+            level=logging.INFO
         )
         
         # Print response
@@ -32,8 +33,8 @@ def main():
         
     except Exception as e:
         logger.log_interaction(
-            "error",
-            {
+            interaction_type="error",
+            data={
                 "query": query,
                 "error": str(e)
             },
