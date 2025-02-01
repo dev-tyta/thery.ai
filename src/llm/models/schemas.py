@@ -15,7 +15,14 @@ class ContextInfo(BaseModel):
     combined_context: str
     relevance_score: float = Field(..., ge=0, le=1)
 
+class SessionData(BaseModel):
+    user_id: str = Field(..., description="Unique user identifier")
+    session_id: str = Field(..., description="Current session identifier")
+    is_new_user: bool = Field(False, description="Flag for new user detection")
+    is_new_session: bool = Field(False, description="Flag for new session detection")
+
 class ConversationResponse(BaseModel):
+    session_data: SessionData
     response: str = Field(..., description="Primary assistant response")
     emotion_analysis: EmotionalAnalysis
     context: ContextInfo

@@ -7,11 +7,12 @@ load_dotenv()
 class Settings(BaseSettings):
     GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY")
     TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY")
-    POSTGRES_HOST: str = "localhost"
-    POSTGRES_PORT: int = 5432
-    POSTGRES_DB: str = "therapy_bot"
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = ""
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 5432
+    REDIS_DB: str = "therapy_bot"
+    REDIS_USER: str = "redis"
+    REDIS_PASSWORD: str = ""
+    SESSION_TTL: int = 86400
     MAX_RETRIES: int = 3
     SAFETY_THRESHOLD: float = 0.95
     TAVILY_MAX_RESULTS: int = 3

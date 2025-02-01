@@ -1,53 +1,67 @@
-# File: history.py
 import json
-from src.llm.memory.pg_connection import PostgresConnection
+import time
+from datetime import timedelta
+from typing import List, Dict, Any, Optional
+from .redis_connection import RedisConnection
+from src.llm.models.schemas import ConversationResponse
+from src.llm.core.config import settings
 
-class History:
-    def __init__(self):
-        self.pg_conn = PostgresConnection().connect()
-        self._initialize_schema()
+class RedisHistory:
+    def __init__(self, session_ttl: int = settings.SESSION_TTL):
+        self.redis = RedisConnection().client
+        self.session_ttl = session_ttl
 
-    def _initialize_schema(self):
-        with self.pg_conn.cursor() as cursor:
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS chat_history (
-                    id SERIAL PRIMARY KEY,
-                    chat_id VARCHAR(255) NOT NULL,
-                    message_type VARCHAR(50),
-                    message_content TEXT,
-                    emotion_label VARCHAR(100),
-                    metadata JSONB,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            ''')
-            self.pg_conn.commit()
-
-    def add_message(self, chat_id, message_type, message_content, emotion_label=None, metadata=None):
-        with self.pg_conn.cursor() as cursor:
-            cursor.execute('''
-                INSERT INTO chat_history 
-                (chat_id, message_type, message_content, emotion_label, metadata)
-                VALUES (%s, %s, %s, %s, %s)
-            ''', (chat_id, message_type, message_content, emotion_label, json.dumps(metadata or {})))
-            self.pg_conn.commit()
-
-    def get_messages(self, chat_id):
-        with self.pg_conn.cursor() as cursor:
-            cursor.execute('''
-                SELECT message_type, message_content, emotion_label, metadata, created_at
-                FROM chat_history
-                WHERE chat_id = %s
-                ORDER BY created_at ASC
-            ''', (chat_id,))
-            return [{
-                'message_type': row[0],
-                'message_content': row[1],
-                'emotion_label': row[2],
-                'metadata': row[3],
-                'timestamp': row[4]
-            } for row in cursor.fetchall()]
-
-    def clear_history(self, chat_id):
-        with self.pg_conn.cursor() as cursor:
-            cursor.execute('DELETE FROM chat_history WHERE chat_id = %s', (chat_id,))
-            self.pg_conn.commit()
+    def add_conversation(self, session_id: str, chat_id: str, response: ConversationResponse) -> None:
+        """
+        Store complete conversation response in history
+        """
+        # Store in session-specific list
+        self.redis.rpush(
+            f"session:{session_id}:history",
+            json.dumps({
+                'chat_id': chat_id,
+                'response': response.dict(),
+                'timestamp': time.time()
+            })
+        )
+        
+        # Set TTL for session history
+        self.redis.expire(f"session:{session_id}:history", self.session_ttl)
+    
+    def get_conversation_history(self, session_id: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Retrieve conversation history with optional limit
+        """
+        messages = self.redis.lrange(f"session:{session_id}:history", -limit, -1)
+        return [
+            {
+                'chat_id': json.loads(msg)['chat_id'],
+                'response': ConversationResponse(**json.loads(msg)['response']),
+                'timestamp': json.loads(msg)['timestamp']
+            }
+            for msg in messages
+        ]
+    
+    def get_full_context(self, session_id: str) -> str:
+        """
+        Generate conversation context string for LLM prompts
+        """
+        history = self.get_conversation_history(session_id)
+        context_lines = []
+        
+        for entry in history:
+            response = entry['response']
+            context_lines.append(
+                f"User: {response.query}\n"
+                f"Therapist: {response.response}\n"
+                f"Emotions: {response.emotion_analysis.primary_emotion} "
+                f"(Intensity: {response.emotion_analysis.intensity})\n"
+            )
+        
+        return "\n".join(context_lines)
+    
+    def clear_history(self, session_id: str) -> None:
+        """
+        Clear session history
+        """
+        self.redis.delete(f"session:{session_id}:history")

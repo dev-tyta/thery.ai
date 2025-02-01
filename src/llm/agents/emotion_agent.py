@@ -14,15 +14,22 @@ class EmotionAgent(BaseAgent):
     
     def _construct_emotion_prompt(self, text: str) -> str:
         return f"""
-        Analyze the emotional content in the following text:
-        Text: {text}
-        
-        Provide analysis in the following format:
-        1. Primary emotion
-        2. Intensity (1-10)
-        3. Secondary emotions
-        4. Emotional triggers
-        5. Suggested coping strategies
+            Analyze the emotional content in the following text:
+            Text: {text}
+            
+            Provide analysis in the following format:
+            1. Primary emotion: [single emotion]
+            2. Intensity: [number between 1 and 10]
+            3. Secondary emotions: [comma-separated list of emotions]
+            4. Emotional triggers: [comma-separated list of triggers]
+            5. Suggested coping strategies: [comma-separated list of strategies]
+            
+            Example:
+            1. Primary emotion: Anxiety
+            2. Intensity: 7
+            3. Secondary emotions: Fear, Worry
+            4. Emotional triggers: Work deadline, Family conflict
+            5. Suggested coping strategies: Deep breathing, Journaling, Talking to a friend
         """
     
     def _parse_emotion_response(self, response: str) -> Dict[str, Any]:
