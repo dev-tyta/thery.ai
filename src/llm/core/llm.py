@@ -9,7 +9,7 @@ class LLMError(Exception):
     """Custom exception for LLM-related errors"""
     pass
 
-class TheTherapistLLM:
+class TheryLLM:
     """Enhanced LLM wrapper with safety checks and response validation"""
     
     def __init__(

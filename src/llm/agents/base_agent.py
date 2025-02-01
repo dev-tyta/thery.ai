@@ -1,15 +1,15 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
-from src.llm.core.llm import TheTherapistLLM
+from src.llm.core.llm import TheryLLM
 from src.llm.memory.history import History
 
 class BaseAgent(ABC):
     def __init__(
         self,
-        llm: Optional[TheTherapistLLM] = None,
+        llm: Optional[TheryLLM] = None,
         history: Optional[History] = None
     ):
-        self.llm = llm or TheTherapistLLM()
+        self.llm = llm or TheryLLM()
         self.history = history or History()
     
     @abstractmethod
