@@ -48,7 +48,7 @@ class FAISSVectorSearch:
         try:
             results = self.vectorstore.similarity_search(
                 query,
-                k=k or self.k
+                k=(k or self.k)
             )
             return [res.page_content for res in results]
         except Exception as e:

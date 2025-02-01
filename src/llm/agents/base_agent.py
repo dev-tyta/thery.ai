@@ -29,7 +29,7 @@ class BaseAgent(ABC):
         self,
         action: str,
         metadata: Dict[str, Any],
-        level: str = "INFO",
+        level: str = logging.INFO,
         session_id: Optional[str] = None,
         user_id: Optional[str] = None
     ) -> None:
@@ -58,8 +58,10 @@ class BaseAgent(ABC):
 
         # Log the data using the existing logger
         if hasattr(self, "logger"):
-            log_method = getattr(self.logger, level.lower(), logging.info)
-            log_method(log_data)
+            self.logger.log_interaction(
+                interaction_type="agent_action",
+                data=log_data,
+                level=level
+            )
         else:
-            # Fallback to print if logger is not available
-            print(f"[{level.upper()}] {log_data}")
+            print(f"Logging failed: {log_data}")

@@ -1,5 +1,6 @@
 import uuid
 import textwrap
+import logging
 from typing import Dict, Any, Optional, List
 from .base_agent import BaseAgent
 from .emotion_agent import EmotionAgent
@@ -61,7 +62,7 @@ class ConversationAgent(BaseAgent):
         self.memory_manager.store_conversation(session_id, chat_id, response)
         self.history.add_conversation(session_id, chat_id, response)
 
-        self._log_action(action="conversation", metadata={"query": query, "response": response}, level="INFO", session_id=session_id, user_id=user_id)
+        self._log_action(action="conversation", metadata={"query": query, "response": response}, level=logging.INFO, session_id=session_id, user_id=user_id)
         
         return ConversationResponse(
             session_data=SessionData(

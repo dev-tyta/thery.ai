@@ -12,7 +12,14 @@ class EmotionAgent(BaseAgent):
         analysis = self._parse_emotion_response(response.content)
         self._log_action(action="emotion_analysis", metadata={"text": text, "analysis": analysis}, level=logging.INFO)
         
-        return EmotionalAnalysis(**analysis)
+        return EmotionalAnalysis(
+            primary_emotion=analysis['primary_emotion'],
+            intensity=analysis['intensity'],
+            secondary_emotions=analysis['secondary_emotions'],
+            triggers=analysis['emotional_triggers'],
+            coping_strategies=analysis['coping_strategies'],
+            confidence_score=analysis['confidence_score']
+        )
     
     def _construct_emotion_prompt(self, text: str) -> str:
         emotion_prompt = f"""
@@ -25,6 +32,7 @@ class EmotionAgent(BaseAgent):
             3. Secondary emotions: [comma-separated list of emotions]
             4. Emotional triggers: [comma-separated list of triggers]
             5. Suggested coping strategies: [comma-separated list of strategies]
+            6. Confidence score: [number between 0 and 1]
             
             Example:
             1. Primary emotion: Anxiety
@@ -32,6 +40,7 @@ class EmotionAgent(BaseAgent):
             3. Secondary emotions: Fear, Worry
             4. Emotional triggers: Work deadline, Family conflict
             5. Suggested coping strategies: Deep breathing, Journaling, Talking to a friend
+            6. Confidence score: 0.8
         """
         
         return textwrap.dedent(emotion_prompt).strip()
@@ -43,7 +52,8 @@ class EmotionAgent(BaseAgent):
                 'intensity': 0,
                 'secondary_emotions': [],
                 'emotional_triggers': [],
-                'coping_strategies': []
+                'coping_strategies': [],
+                'confidence_score': 0.0
             }
             
             for line in response.split('\n'):
@@ -86,6 +96,12 @@ class EmotionAgent(BaseAgent):
                     analysis['coping_strategies'] = [
                         c.strip() for c in value.split(',') if c.strip()
                     ]
+                elif 'confidence score' in key:
+                    # Convert confidence score to float safely
+                    try:
+                        analysis['confidence_score'] = float(value.strip('[]'))
+                    except ValueError:
+                        analysis['confidence_score'] = 0.5
                     
             if not analysis['primary_emotion']:
                 raise ValueError("Primary emotion not found in response")

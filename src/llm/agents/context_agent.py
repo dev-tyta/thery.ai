@@ -1,4 +1,5 @@
 import os
+import logging
 from typing import Dict, Any
 from .base_agent import BaseAgent
 from src.llm.core.config import settings
@@ -17,7 +18,7 @@ class ContextAgent(BaseAgent):
         self.web_search = TavilySearchResults(
             max_results=settings.TAVILY_MAX_RESULTS,
             include_answer=settings.TAVILY_INCLUDE_ANSWER,
-            include_images=settings.TAVILY_INCLUDE_IMAGES,  # Disabled until needed
+            include_images=settings.TAVILY_INCLUDE_IMAGES,
             api_wrapper=TavilySearchAPIWrapper(tavily_api_key=settings.TAVILY_API_KEY)
         )
         
@@ -30,12 +31,12 @@ class ContextAgent(BaseAgent):
 
         combined_context = f"{web_context}\n\n{vector_context}"
         
-        self._log_action(action="context_gathered", metadata={"query": query, "web_context": web_context, "vector_context": vector_context}, level="INFO")  
+        self._log_action(action="context_gathered", metadata={"query": query, "web_context": web_context, "vector_context": vector_context}, level=logging.INFO)  
         return ContextInfo(
             query=query,
             web_context=web_context,
             vector_context=vector_context,
-            combined_context=combined_context
+            combined_context=combined_context,
         )
     
     def _get_web_context(self, query: str) -> str:
@@ -43,12 +44,12 @@ class ContextAgent(BaseAgent):
             results = self.web_search.invoke(query)
             return "\n".join([res["content"] for res in results])
         except Exception as e:
-            self._log_action(action="web_search_error", metadata={"error": str(e)}, level="ERROR")
+            self._log_action(action="web_search_error", metadata={"error": str(e)}, level=logging.ERROR)
             return "Web search unavailable"
     
     def _get_vector_context(self, query: str) -> str:
         try:
-            return self.vector_search(query)
+            return self.vector_search.search(query)
         except Exception as e:
-            self._log_action(action="vector_search_error", metadata={"error": str(e)}, level="ERROR")
+            self._log_action(action="vector_search_error", metadata={"error": str(e)}, level=logging.ERROR)
             return "Vector search unavailable"

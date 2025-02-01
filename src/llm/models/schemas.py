@@ -6,15 +6,22 @@ class EmotionalAnalysis(BaseModel):
     intensity: int = Field(..., ge=1, le=10)
     secondary_emotions: List[str]
     triggers: List[str]
-    coping_strategies: List[str]
+    coping_strategies: List[str] = []
     confidence_score: float = Field(..., ge=0, le=1)
 
 class ContextInfo(BaseModel):
     query: str
-    web_context: str
-    vector_context: str
-    combined_context: str
-    relevance_score: float = Field(..., ge=0, le=1)
+    web_context: str = ""
+    vector_context: List[str] = Field(default_factory=list)
+    combined_context: str = ""
+    
+    def dict(self, *args, **kwargs):
+        return {
+            "query": self.query,
+            "web_context": self.web_context,
+            "vector_context": self.vector_context,
+            "combined_context": self.combined_context
+        }
 
 class SessionData(BaseModel):
     user_id: str = Field(..., description="Unique user identifier")
