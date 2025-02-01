@@ -1,6 +1,6 @@
 # File: history.py
 import json
-from src.memory.pg_connection import PostgresConnection
+from src.llm.memory.pg_connection import PostgresConnection
 
 class History:
     def __init__(self):
