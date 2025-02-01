@@ -48,17 +48,25 @@ class ConversationAgent(BaseAgent):
         
         # Gather context
         context = self.context_agent.process(query)
+        context = ContextInfo(
+            query=context.query,
+            web_context=context.web_context,
+            vector_context=context.vector_context,
+            combined_context=context.combined_context
+        )
+
         history_context= self.history.get_full_context(session_id)
         
+        combined_context = context.combined_context if context else None
         
         # Generate response
         response = self._generate_response(
             query=query,
             emotion_analysis=emotion_analysis,
-            context=context,
+            context=combined_context,
             chat_history=history_context
         )
-
+        
         self.memory_manager.store_conversation(session_id, chat_id, response)
         self.history.add_conversation(session_id, chat_id, response)
 
@@ -122,7 +130,7 @@ class ConversationAgent(BaseAgent):
                 - **Chat History:** `{kwargs['chat_history']}`
                 - **User Query:** `{kwargs['query']}`
                 - **Emotional Analysis:** `{kwargs['emotion_analysis']}`
-                - **Context:** `{kwargs['context']['combined_context']}`
+                - **Context:** `{kwargs['context']}`
 
                 **Response Example:**
                 - If the user says, “Hello,” start with a friendly greeting:  

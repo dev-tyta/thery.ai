@@ -22,7 +22,7 @@ def main():
             interaction_type="user_interaction",
             data={
                 "query": query,
-                "response": response.dict(),
+                "response": response.response,
                 "status": "success"
             },
             level=logging.INFO

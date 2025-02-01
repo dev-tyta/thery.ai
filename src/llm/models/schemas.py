@@ -14,14 +14,6 @@ class ContextInfo(BaseModel):
     web_context: str = ""
     vector_context: List[str] = Field(default_factory=list)
     combined_context: str = ""
-    
-    def dict(self, *args, **kwargs):
-        return {
-            "query": self.query,
-            "web_context": self.web_context,
-            "vector_context": self.vector_context,
-            "combined_context": self.combined_context
-        }
 
 class SessionData(BaseModel):
     user_id: str = Field(..., description="Unique user identifier")
@@ -33,8 +25,7 @@ class ConversationResponse(BaseModel):
     session_data: SessionData
     response: str = Field(..., description="Primary assistant response")
     emotion_analysis: EmotionalAnalysis
-    context: ContextInfo
+    context: ContextInfo = Field(default_factory=ContextInfo)
     query: str
-    metadata: Dict[str, Any] = Field(default_factory=dict)
     safety_level: str = Field(..., description="Assessment of response safety")
     suggested_resources: List[str] = Field(default_factory=list)
