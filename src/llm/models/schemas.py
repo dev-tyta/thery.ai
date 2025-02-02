@@ -27,5 +27,5 @@ class ConversationResponse(BaseModel):
     emotion_analysis: EmotionalAnalysis
     context: ContextInfo = Field(default_factory=ContextInfo)
     query: str
-    safety_level: str = Field(..., description="Assessment of response safety")
-    suggested_resources: List[str] = Field(default_factory=list)
+    safety_level: str = None
+    suggested_resources: List[str] = None

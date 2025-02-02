@@ -2,9 +2,9 @@ import uuid
 import textwrap
 import logging
 from typing import Dict, Any, Optional, List
-from .base_agent import BaseAgent
-from .emotion_agent import EmotionAgent
-from .context_agent import ContextAgent
+from src.llm.agents.base_agent import BaseAgent
+from src.llm.agents.emotion_agent import EmotionAgent
+from src.llm.agents.context_agent import ContextAgent
 from src.llm.models.schemas import ConversationResponse, EmotionalAnalysis, ContextInfo
 from src.llm.models.schemas import SessionData
 from src.llm.memory.memory_manager import RedisMemoryManager
@@ -67,12 +67,7 @@ class ConversationAgent(BaseAgent):
             chat_history=history_context
         )
         
-        self.memory_manager.store_conversation(session_id, chat_id, response)
-        self.history.add_conversation(session_id, chat_id, response)
-
-        self._log_action(action="conversation", metadata={"query": query, "response": response}, level=logging.INFO, session_id=session_id, user_id=user_id)
-        
-        return ConversationResponse(
+        conversation_response = ConversationResponse(
             session_data=SessionData(
                 user_id=user_id,
                 session_id=session_id,
@@ -84,6 +79,13 @@ class ConversationAgent(BaseAgent):
             context=context,
             query=query
         )
+
+        self.memory_manager.store_conversation(session_id, chat_id, conversation_response)
+        self.history.add_conversation(session_id, chat_id, conversation_response)
+
+        self._log_action(action="conversation", metadata={"query": query, "response": response}, level=logging.INFO, session_id=session_id, user_id=user_id)
+        
+        return conversation_response
     
     def _generate_response(
         self,
@@ -92,6 +94,7 @@ class ConversationAgent(BaseAgent):
         context: Optional[ContextInfo],
         chat_history: Optional[List[Dict]]
     ) -> str:
+        
         prompt = self._construct_response_prompt(
             query=query,
             emotion_analysis=emotion_analysis,
