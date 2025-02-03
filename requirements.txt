@@ -25,3 +25,4 @@ telegram
 pydantic
 spotipy
 tavily-python
+python-telegram-bot

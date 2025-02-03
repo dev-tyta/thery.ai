@@ -11,7 +11,7 @@ def main():
     agent = ConversationAgent()
     
     # Example interaction
-    query = "I've been feeling overwhelmed with work lately"
+    query = "But I have been try to do this for quite a while now and I am still not able to get it right."
     
     try:
         # Process query
@@ -29,7 +29,7 @@ def main():
         )
         
         # Print response
-        print(f"Bot: {response.response}")
+        print(f"Thery AI: {response.response}")
         
     except Exception as e:
         logger.log_interaction(
