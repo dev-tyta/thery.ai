@@ -1,6 +1,7 @@
 import uuid
 import textwrap
 import logging
+import asyncio
 from typing import Dict, Any, Optional, List
 from src.llm.agents.base_agent import BaseAgent
 from src.llm.agents.emotion_agent import EmotionAgent
@@ -77,7 +78,9 @@ class ConversationAgent(BaseAgent):
             response=response,
             emotion_analysis=emotion_analysis,
             context=context,
-            query=query
+            query=query,
+            safety_level="unknown",
+            suggested_resources=[]
         )
 
         self.memory_manager.store_conversation(session_id, chat_id, conversation_response)
@@ -146,3 +149,15 @@ class ConversationAgent(BaseAgent):
         """
 
         return textwrap.dedent(prompt).strip()
+
+    
+    async def process_async(
+        self,
+        query: str,
+        session_data: Optional[SessionData] = None
+    ) -> ConversationResponse:
+        
+        return await asyncio.get_event_loop().run_in_executor(
+        None,
+        lambda: self.process(query, session_data)
+    )

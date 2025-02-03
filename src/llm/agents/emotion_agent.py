@@ -1,4 +1,5 @@
 import textwrap
+import asyncio
 from typing import Dict, Any
 import logging
 from .base_agent import BaseAgent
@@ -116,3 +117,9 @@ class EmotionAgent(BaseAgent):
                 level=logging.ERROR
             )
             raise ValueError(f"Failed to parse emotion response: {str(e)}")
+        
+    async def process_async(self, text: str) -> EmotionalAnalysis:
+        return await asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: self.process(text)
+        )

@@ -1,4 +1,5 @@
 import os
+import asyncio
 import logging
 from typing import Dict, Any
 from .base_agent import BaseAgent
@@ -53,3 +54,10 @@ class ContextAgent(BaseAgent):
         except Exception as e:
             self._log_action(action="vector_search_error", metadata={"error": str(e)}, level=logging.ERROR)
             return "Vector search unavailable"
+
+
+    async def process_async(self, query: str) -> ContextInfo:
+        return await asyncio.get_event_loop().run_in_executor(
+        None,
+        lambda: self.process(query)
+    )

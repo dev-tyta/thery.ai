@@ -21,7 +21,6 @@ numpy
 pandas
 langserve
 langsmith
-telegram
 pydantic
 spotipy
 tavily-python
