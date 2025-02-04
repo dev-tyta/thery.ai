@@ -6,7 +6,8 @@
 Thery AI is an AI Therapy Agent which helps the user with mental health issues and provide a first level of solution.
 
 ## Features
-(List of features would go here)
+Since this is the first version roll out, a few major Features have been released and in the subsequent future, we would release improved versions for the project.
+
 
 ## Requirements
 (System requirements, dependencies would go here)
