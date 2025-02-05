@@ -15,9 +15,9 @@ class TheryLLM:
     def __init__(
         self,
         model_name: str = "gemini-1.5-flash",
-        temperature: float = 0.7,
+        temperature: float = 0.3,
         max_retries: int = 3,
-        safety_threshold: float = 0.95,
+        safety_threshold: float = 0.75,
         logger: Optional[TheryBotLogger] = None
     ):
         self.model_name = model_name
@@ -34,7 +34,8 @@ class TheryLLM:
                 model=self.model_name,
                 temperature=self.temperature,
                 max_retries=self.max_retries,
-                google_api_key=settings.GOOGLE_API_KEY
+                google_api_key=settings.GOOGLE_API_KEY,
+                max_tokens= settings.MAX_TOKENS
             )
             self._session_active = True
         except Exception as e:

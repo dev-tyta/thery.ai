@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     REDIS_PASSWORD: str = ""
     SESSION_TTL: int = 86400
     MAX_RETRIES: int = 3
+    MAX_TOKENS: int = 200
     SAFETY_THRESHOLD: float = 0.95
     TAVILY_MAX_RESULTS: int = 3
     TAVILY_INCLUDE_IMAGES: bool = False
