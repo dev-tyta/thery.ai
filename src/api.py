@@ -9,15 +9,10 @@ import uvicorn
 from multiprocessing import Process
 
 from src.llm.routes import router as conversation_router
-from src.tele_bot.bot import main as run_telegram_bot
 from src.llm.core.config import settings
 from src.llm.agents.conversation_agent import ConversationAgent
 
-def on_startup():
-    global conversation_agent
-    conversation_agent = ConversationAgent()
 
-    
 app = FastAPI(
     title="TheryAI API",
     description="API for TheryAI",
@@ -26,7 +21,6 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json",
     debug=True,
-    on_startup=[on_startup]
 )
 
 
@@ -63,7 +57,7 @@ thread.daemon = True
 thread.start()
 
 
-def run_bot():
+def run_fastapi():
     uvicorn.run(
         "src.api:app",
         host="0.0.0.0",
@@ -71,18 +65,6 @@ def run_bot():
         log_level="info",
         reload=True,
     )
-
-def run_telegram_bot():
-    asyncio(run_telegram_bot())
-
-
+    
 if __name__ == "__main__":
-    fastapi_process = Process(target=run_bot)
-    telegram_process = Process(target=run_telegram_bot)
-    
-    fastapi_process.start()
-    telegram_process.start()
-
-    fastapi_process.join()
-    telegram_process.join()
-    
+    run_fastapi()

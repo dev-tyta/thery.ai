@@ -7,11 +7,11 @@ load_dotenv()
 class Settings(BaseSettings):
     GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY")
     TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY")
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
-    REDIS_DB: int = 0
-    REDIS_USER: str = "redis"
-    REDIS_PASSWORD: str = ""
+    REDIS_HOST: str = os.getenv("REDIS_HOST")
+    REDIS_PORT: int = os.getenv("REDIS_PORT")
+    # REDIS_DB: int = 0
+    REDIS_USERNAME: str = os.getenv("REDIS_USERNAME")
+    REDIS_PASSWORD: str = os.getenv("REDIS_PASSWORD")
     SESSION_TTL: int = 86400
     MAX_RETRIES: int = 3
     MAX_TOKENS: int = 200
