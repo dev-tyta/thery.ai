@@ -186,7 +186,8 @@ class ConversationAgent(BaseAgent):
 
                 You: "I can sense your frustration. Can you tell me more about what's been going on, and how you've been coping with these challenges?"
 
-                Please respond as a therapist would, using the guidelines and attributes above. Make sure your responses are not overly long. BE NATURAL, SUUPPORTIVE, AND EMPHATIZING
+                ONLY USE CONTEXT AND EMOTIONAL ANALYSIS IF THEY ALIGN WITH YOUR THOUGHTS ON THE USER'S QUERY, DO NOT REPLY WITH CONTEXT IF THE CONTEXT DOESN'T HELP THE USER.
+                Please respond as a therapist would, using the guidelines and attributes above. Make sure your responses are not overly long. BE NATURAL, SUUPPORTIVE, AND EMPHATIZING. 
                 
                 """
 
