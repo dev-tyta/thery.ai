@@ -38,7 +38,7 @@ async def health():
 def ping_server():
     try:
         print("Pinging server")
-        response = requests.get("https://theryai-api./")
+        response = requests.get("https://testys-thery-ai.hf.space")
     except requests.exceptions.RequestException as e:
         print("Server is down")
         # send email to admin
