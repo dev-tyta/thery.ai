@@ -56,8 +56,36 @@ class ContextAgent(BaseAgent):
             return "Vector search unavailable"
 
 
+    # Updated async web search handling
+    async def _get_web_context_async(self, query: str) -> str:
+        """Async version of web context retrieval"""
+        try:
+            loop = asyncio.get_event_loop()
+            results = await loop.run_in_executor(
+                None,
+                lambda: self.web_search.invoke(query)
+            )
+            return "\n".join([res["content"] for res in results])
+        except Exception as e:
+            self._log_action(action="web_search_error", metadata={"error": str(e)}, level=logging.ERROR)
+            return "Web search unavailable"
+
     async def process_async(self, query: str) -> ContextInfo:
-        return await asyncio.get_event_loop().run_in_executor(
-        None,
-        lambda: self.process(query)
-    )
+        """Async version with parallel context gathering"""
+        web_task = self._get_web_context_async(query)
+        vector_task = asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: self._get_vector_context(query)
+        )
+        
+        web_context, vector_context = await asyncio.gather(web_task, vector_task)
+        
+        combined_context = f"{web_context}\n\n{vector_context}"
+        
+        self._log_action(action="context_gathered", metadata={"query": query}, level=logging.INFO)
+        return ContextInfo(
+            query=query,
+            web_context=web_context,
+            vector_context=vector_context,
+            combined_context=combined_context,
+        )

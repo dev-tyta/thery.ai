@@ -47,6 +47,13 @@ async def handle_message(update: Update, context: CallbackContext):
         user = update.effective_user
         text = update.message.text
         
+        typing_task = asyncio.create_task(
+            context.bot.send_chat_action(
+                chat_id=update.effective_chat.id,
+                action="typing"
+            )
+        )
+
         # Get or create session
         session_data = context.user_data.get('session_data')
         
@@ -60,10 +67,7 @@ async def handle_message(update: Update, context: CallbackContext):
         context.user_data['session_data'] = response.session_data
         
         # Send response with typing indicator
-        await context.bot.send_chat_action(
-            chat_id=update.effective_chat.id,
-            action="typing"
-        )
+        await typing_task
         await update.message.reply_text(response.response)
 
     except Exception as e:
