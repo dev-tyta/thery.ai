@@ -19,6 +19,7 @@ transformers
 sentence-transformers
 numpy
 pandas
+schedule
 langserve
 langsmith
 pydantic

@@ -11,4 +11,4 @@ python -m src.tele_bot.bot &
 
 echo "Starting FastAPI application..."
 # Start FastAPI with Uvicorn
-exec uvicorn app.src.api:app --host 0.0.0.0 --port 7860 --workers 1
+exec uvicorn src.api:app --host 0.0.0.0 --port 7860 --workers 1

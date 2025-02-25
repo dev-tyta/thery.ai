@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import List, Optional
 import logging
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
+from langchain_community.vectorstores.faiss import FAISS
 from src.llm.utils.logging import TheryBotLogger
 
 class FAISSVectorSearch:
