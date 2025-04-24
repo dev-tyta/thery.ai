@@ -1,6 +1,6 @@
 import os
 from src.utils.pdf_splitter import DataExtractor
-from langchain_community.embeddings import HuggingFaceEmbeddings  # Changed
+from langchain_huggingface import HuggingFaceEmbeddings 
 from langchain_community.vectorstores import FAISS # Fixed import
 
 class VectorDatabase:
