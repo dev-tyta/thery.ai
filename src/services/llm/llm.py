@@ -2,8 +2,8 @@ from typing import Optional, Dict, Any
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import AIMessage
 import logging
-from src.llm.core.config import settings
-from src.llm.utils.logging import TheryBotLogger
+from src.core.config import settings
+from src.utils.logging import TheryBotLogger
 
 class LLMError(Exception):
     """Custom exception for LLM-related errors"""

@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from typing import List, Optional
 from datetime import datetime
-from src.llm.models.schemas import ConversationResponse, SessionData
-from src.llm.utils.logging import TheryBotLogger
-from src.llm.memory.history import RedisHistory
-from src.llm.memory.memory_manager import RedisMemoryManager
-from src.llm.memory.session_manager import SessionManager
-from src.llm.agents.conversation_agent import ConversationAgent
+from src.models.schemas import ConversationResponse, SessionData
+from src.utils.logging import TheryBotLogger
+from src.memory.history import RedisHistory
+from src.memory.memory_manager import RedisMemoryManager
+from src.memory.session_manager import SessionManager
+from src.services.llm.agents.conversation_agent import ConversationAgent
 
 router = APIRouter(
     prefix="/api/v1",

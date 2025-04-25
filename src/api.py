@@ -8,7 +8,7 @@ import asyncio
 import uvicorn
 from multiprocessing import Process
 
-from src.llm.routes import router as conversation_router
+from src.api.router.routes import router as conversation_router
 from src.llm.core.config import settings
 from src.llm.agents.conversation_agent import ConversationAgent
 
