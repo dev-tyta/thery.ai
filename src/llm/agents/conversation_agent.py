@@ -15,11 +15,12 @@ from src.llm.memory.history import RedisHistory
 class ConversationAgent(BaseAgent):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.emotion_agent = EmotionAgent(llm=self.llm, history=self.history)
-        self.context_agent = ContextAgent(llm=self.llm, history=self.history)
+        # memory/session helpers (history already set by BaseAgent)
         self.memory_manager = RedisMemoryManager()
         self.session_manager = SessionManager()
-        self.history = RedisHistory()
+        # sub-agents share the same llm and history instances
+        self.emotion_agent = EmotionAgent(llm=self.llm, history=self.history)
+        self.context_agent = ContextAgent(llm=self.llm, history=self.history)
     
     def process(
         self,
@@ -199,8 +200,4 @@ class ConversationAgent(BaseAgent):
         query: str,
         session_data: Optional[SessionData] = None
     ) -> ConversationResponse:
-        
-        return await asyncio.get_event_loop().run_in_executor(
-        None,
-        lambda: self.process(query, session_data)
-    )
+        return await asyncio.to_thread(self.process, query, session_data)

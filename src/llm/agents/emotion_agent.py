@@ -50,11 +50,11 @@ class EmotionAgent(BaseAgent):
         try:
             analysis = {
                 'primary_emotion': '',
-                'intensity': 0,
+                'intensity': 5,
                 'secondary_emotions': [],
                 'emotional_triggers': [],
                 'coping_strategies': [],
-                'confidence_score': 0.0
+                'confidence_score': 0.5
             }
             
             for line in response.split('\n'):
@@ -80,11 +80,11 @@ class EmotionAgent(BaseAgent):
                 if 'primary emotion' in key:
                     analysis['primary_emotion'] = value
                 elif 'intensity' in key:
-                    # Convert intensity to integer safely
+                    # Convert intensity to integer safely, clamped to [1, 10]
                     try:
-                        analysis['intensity'] = int(value.strip('[]'))
-                    except ValueError:
-                        analysis['intensity'] = 5  # default value
+                        analysis['intensity'] = max(1, min(10, int(float(value.strip('[]')))))
+                    except (ValueError, TypeError):
+                        analysis['intensity'] = 5  # safe midpoint default
                 elif 'secondary emotions' in key:
                     analysis['secondary_emotions'] = [
                         s.strip() for s in value.split(',') if s.strip()

@@ -2,38 +2,25 @@ langchain
 langchain-core
 langchain-community
 langchain-text-splitters
-langchain-openai
-langchain-anthropic
 langchain-google-community
-langchain_chroma
 langchain_huggingface
 langchain_google_genai
 fastapi
-gpt-researcher
+uvicorn[standard]
 chromadb
-md2pdf
-openai
 faiss-cpu
 torch
 transformers
 sentence-transformers
+schedule
 numpy
 pandas
-schedule
-langserve
 langsmith
 pydantic
+pydantic-settings
+python-dotenv
+redis
+psycopg2-binary
 spotipy
 tavily-python
 python-telegram-bot
-fastapi==0.110.0
-uvicorn==0.27.1
-sqlalchemy==2.0.27
-asyncpg==0.29.0 # Async driver for PostgreSQL
-psycopg2-binary==2.9.9 # PostgreSQL adapter
-passlib[bcrypt]==1.7.4 # For password hashing
-python-jose[jwt]==3.3.0 # For JWT token handling
-redis==5.0.1 # Redis client
-pydantic==2.6.1 # Data validation (FastAPI dependency, but good to list)
-python-dotenv==1.0.1 # For loading environment variables from a .env file
-python-multipart==0.0.6 # For handling file uploads

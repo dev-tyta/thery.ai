@@ -2,19 +2,19 @@ from typing import Optional, Dict, Any
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import AIMessage
 import logging
-from src.core.config import settings
-from src.utils.logging import TheryBotLogger
+from src.llm.core.config import settings
+from src.llm.utils.logging import TheryBotLogger
 
 class LLMError(Exception):
     """Custom exception for LLM-related errors"""
     pass
 
 class TheryLLM:
-    """Enhanced LLM wrapper with safety checks and response validation"""
-    
+    """Gemini-backed LLM wrapper with safety checks and response validation"""
+
     def __init__(
         self,
-        model_name: str = "gemini-1.5-flash",
+        model_name: str = "gemini-2.0-flash",
         temperature: float = 0.3,
         max_retries: int = 3,
         safety_threshold: float = 0.75,
@@ -26,16 +26,16 @@ class TheryLLM:
         self.safety_threshold = safety_threshold
         self.logger = logger or TheryBotLogger()
         self._initialize_llm()
-    
+
     def _initialize_llm(self) -> None:
-        """Initialize the LLM with proper error handling"""
+        """Initialize Gemini with proper error handling"""
         try:
             self.llm = ChatGoogleGenerativeAI(
                 model=self.model_name,
                 temperature=self.temperature,
                 max_retries=self.max_retries,
                 google_api_key=settings.GOOGLE_API_KEY,
-                max_tokens= settings.MAX_TOKENS
+                max_tokens=settings.MAX_TOKENS,
             )
             self._session_active = True
         except Exception as e:
@@ -43,7 +43,7 @@ class TheryLLM:
             self.logger.log_interaction(
                 interaction_type="llm_initialization_failed",
                 data={"error": str(e)},
-                level=logging.ERROR
+                level=logging.ERROR,
             )
             raise LLMError(f"LLM initialization failed: {str(e)}")
     

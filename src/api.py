@@ -8,7 +8,7 @@ import asyncio
 import uvicorn
 from multiprocessing import Process
 
-from src.api.router.routes import router as conversation_router
+from src.llm.routes import router as conversation_router
 from src.llm.core.config import settings
 from src.llm.agents.conversation_agent import ConversationAgent
 
@@ -33,12 +33,40 @@ async def home():
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    status: dict = {"redis": "unknown", "postgres": "unknown"}
+
+    # ── Redis check ─────────────────────────────────────────────────────
+    try:
+        import redis as redis_lib
+        r = redis_lib.from_url(settings.effective_redis_url, socket_connect_timeout=3)
+        r.ping()
+        status["redis"] = "ok"
+    except Exception as exc:
+        status["redis"] = f"error: {exc}"
+
+    # ── Postgres check ───────────────────────────────────────────────────
+    if settings.POSTGRES_URL:
+        try:
+            import psycopg2
+            conn = psycopg2.connect(settings.POSTGRES_URL, connect_timeout=3)
+            conn.close()
+            status["postgres"] = "ok"
+        except Exception as exc:
+            status["postgres"] = f"error: {exc}"
+    else:
+        status["postgres"] = "not configured"
+
+    # ── Overall status ───────────────────────────────────────────────────
+    all_ok = all(v == "ok" for v in status.values() if v != "not configured")
+    return JSONResponse(
+        content={"status": "ok" if all_ok else "degraded", **status},
+        status_code=200 if all_ok else 503,
+    )
 
 def ping_server():
     try:
         print("Pinging server")
-        response = requests.get("https://testys-thery-ai.hf.space")
+        response = requests.get("thery.up.railway.app")
     except requests.exceptions.RequestException as e:
         print("Server is down")
         # send email to admin

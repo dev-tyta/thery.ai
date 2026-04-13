@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from typing import List, Optional
 from datetime import datetime
-from src.models.schemas import ConversationResponse, SessionData
-from src.utils.logging import TheryBotLogger
-from src.memory.history import RedisHistory
-from src.memory.memory_manager import RedisMemoryManager
-from src.memory.session_manager import SessionManager
-from src.services.llm.agents.conversation_agent import ConversationAgent
+from src.llm.models.schemas import ConversationResponse, SessionData
+from src.llm.utils.logging import TheryBotLogger
+from src.llm.memory.history import RedisHistory
+from src.llm.memory.memory_manager import RedisMemoryManager
+from src.llm.memory.session_manager import SessionManager
+from src.llm.agents.conversation_agent import ConversationAgent
 
 router = APIRouter(
     prefix="/api/v1",
@@ -28,7 +28,7 @@ async def create_user():
         user_id, _ = session_manager.generate_ids()
         return {"user_id": user_id}
     except Exception as e:
-        logger.error(f"User creation failed: {str(e)}")
+        logger.log_interaction("user_creation_failed", {"error": str(e)}, level=40)
         raise HTTPException(500, "User creation failed")
 
 @router.post("/sessions", response_model=SessionData)
@@ -43,7 +43,7 @@ async def create_session(user_id: str):
             is_new_session=True
         )
     except Exception as e:
-        logger.error(f"Session creation failed: {str(e)}")
+        logger.log_interaction("session_creation_failed", {"error": str(e)}, level=40)
         raise HTTPException(500, "Session creation failed")
 
 @router.get("/sessions/{session_id}/messages", response_model=List[ConversationResponse])
@@ -55,8 +55,10 @@ async def get_messages(session_id: str, limit: int = 50):
             
         messages = history.get_conversation_history(session_id, limit=limit)
         return [msg["response"] for msg in messages]
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Message retrieval failed: {str(e)}")
+        logger.log_interaction("message_retrieval_failed", {"error": str(e)}, level=40)
         raise HTTPException(500, "Message retrieval failed")
 
 @router.post("/sessions/{session_id}/messages", response_model=ConversationResponse)
@@ -89,6 +91,8 @@ async def create_message(
         )
         
         return response
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Message processing failed: {str(e)}")
+        logger.log_interaction("message_processing_failed", {"error": str(e)}, level=40)
         raise HTTPException(500, "Message processing failed")
