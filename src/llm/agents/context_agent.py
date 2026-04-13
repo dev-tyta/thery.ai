@@ -6,8 +6,13 @@ from .base_agent import BaseAgent
 from src.llm.core.config import settings
 from src.llm.memory.vector_store import FAISSVectorSearch
 from src.llm.models.schemas import ContextInfo
-from langchain_community.tools.tavily_search import TavilySearchResults
-from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper
+try:
+    from langchain_tavily import TavilySearch as _TavilyBackend
+    _TAVILY_NEW = True
+except ImportError:
+    from langchain_community.tools.tavily_search import TavilySearchResults as _TavilyBackend  # type: ignore
+    from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper  # type: ignore
+    _TAVILY_NEW = False
 
 class ContextAgent(BaseAgent):
     def __init__(self, *args, **kwargs):
@@ -16,12 +21,20 @@ class ContextAgent(BaseAgent):
 
     def _initialize_tools(self) -> None:
         """Lazy-load expensive resources"""
-        self.web_search = TavilySearchResults(
-            max_results=settings.TAVILY_MAX_RESULTS,
-            include_answer=settings.TAVILY_INCLUDE_ANSWER,
-            include_images=settings.TAVILY_INCLUDE_IMAGES,
-            api_wrapper=TavilySearchAPIWrapper(tavily_api_key=settings.TAVILY_API_KEY)
-        )
+        if _TAVILY_NEW:
+            self.web_search = _TavilyBackend(
+                max_results=settings.TAVILY_MAX_RESULTS,
+                include_answer=settings.TAVILY_INCLUDE_ANSWER,
+                include_images=settings.TAVILY_INCLUDE_IMAGES,
+                tavily_api_key=settings.TAVILY_API_KEY,
+            )
+        else:
+            self.web_search = _TavilyBackend(
+                max_results=settings.TAVILY_MAX_RESULTS,
+                include_answer=settings.TAVILY_INCLUDE_ANSWER,
+                include_images=settings.TAVILY_INCLUDE_IMAGES,
+                api_wrapper=TavilySearchAPIWrapper(tavily_api_key=settings.TAVILY_API_KEY),
+            )
         
         self.vector_search = FAISSVectorSearch()
 

@@ -23,4 +23,5 @@ redis
 psycopg2-binary
 spotipy
 tavily-python
+langchain-tavily
 python-telegram-bot

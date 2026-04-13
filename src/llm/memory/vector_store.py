@@ -23,12 +23,7 @@ class FAISSVectorSearch:
         return HuggingFaceEmbeddings(
             model_name="sentence-transformers/all-MiniLM-L6-v2",
             model_kwargs={"device": "cpu"},
-            encode_kwargs={
-                "padding": "max_length",
-                "max_length": 512,
-                "truncation": True,
-                "normalize_embeddings": True
-            }
+            encode_kwargs={"normalize_embeddings": True}
         )
     
     def _initialize_store(self) -> None:
